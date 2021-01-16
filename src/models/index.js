@@ -1,7 +1,22 @@
 const Sequelize = require('sequelize')
+const ReaderModel = require('./reader')
 
-// Require sequelize at the top of this file
-// Declare a function as setupDatabase. Declare a const and assign a new Sequelize() to it. Pass it the connection infomation from your .env
-// Still inside the funciton, call sequelize.sync({alter: true})
-// Have the function return an empty object for now.
-// At the bottom of the file, module.exports = setupDatabase()
+const { DB_NAME, DB_PASSWORD, DB_HOST, DB_USER, DB_PORT } = process.env
+
+const setUpDatabase = () => {
+  const connection = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+    host: DB_HOST,
+    port: DB_PORT,
+    dialect: 'mysql',
+    logging: false,
+  })
+
+  const Reader = ReaderModel(connection, Sequelize)
+
+  connection.sync({ alter: true }) //This checks what is the current state of the table in the database (which columns it has, what are their data types, etc), and then performs the necessary changes in the table to make it match the model.
+  return {
+    Reader
+  }
+}
+
+module.exports = setUpDatabase()
