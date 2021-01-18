@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "pretest": "node scripts/create-database.js test",
-    "test": "mocha __tests__/**/*.test.js",
+    "test": "mocha __tests__/**/*.test.js --exit --recursive --timeout 20000 --file ./__tests__/test-setup.js",
     "posttest": "node scripts/drop-database.js",
     "prestart": "node scripts/create-database.js",
     "start": "nodemon -r dotenv/config index.js"
@@ -32,6 +32,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "dotenv": "^8.2.0",
+    "eslint": "^7.18.0",
     "faker": "^5.1.0",
     "mocha": "^8.2.1",
     "nodemon": "^2.0.7",

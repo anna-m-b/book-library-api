@@ -1,8 +1,8 @@
+/* eslint-disable no-undef */
 const { expect } = require('chai')
-const request = require('supertest')
-const app = require('../src/app')
 const { Reader } = require('../src/models')
 const dataFactory  = require('../test-helpers/data-factory')
+const { appRequest, postReaders, getReaders } = require('../test-helpers/request-helpers')
 
 describe('/readers', () => {
   //sync with db
@@ -24,12 +24,9 @@ describe('/readers', () => {
   })
 
   describe('POST /readers', () => {
-
+    const reader = dataFactory.reader({})
     it('creates a reader entry in the database and responds with the new record', (done) => {
-      const reader = dataFactory.reader({})
-      request(app)
-      .post('/readers')
-      .send(reader)
+      postReaders(reader)
       .then(res => {
         expect(res.status).to.equal(201)
         Reader.findByPk(res.body.id, { raw: true })
@@ -38,9 +35,59 @@ describe('/readers', () => {
           expect(dbReader.email).to.equal(reader.email)
           expect(dbReader.password).to.equal(reader.password)
           done()
-        })
-      })  
+        }).catch(error => done(error))  
+      }).catch(error => done(error))  
+    })
+
+    describe('POST /readers, missing fields', () => {
+      it('returns a 404 if name is missing', (done) => {
+        postReaders({...reader, name: ''  })
+        .then(res => {
+          expect(res.status).to.equal(400)
+          expect(res.body.error).to.equal('All fields are required')
+          done()
+        }).catch(error => done(error))  
+      })
+      it('returns a 404 if email is missing', (done) => {
+        postReaders({...reader, email: ''  })
+        .then(res => {
+          expect(res.status).to.equal(400)
+          expect(res.body.error).to.equal('All fields are required')
+          done()
+        }).catch(error => done(error))  
+      })
+      it('returns a 404 if password is missing', (done) => {
+        postReaders({...reader, password: ''  })
+        .then(res => {
+          expect(res.status).to.equal(400)
+          expect(res.body.error).to.equal('All fields are required')
+          done()
+        }).catch(error => done(error))  
+      })
     })
   })
- 
+
+  describe('GET /readers', () => {
+    let readers
+    beforeEach(done => {
+      Promise.all([
+        Reader.create(dataFactory.reader({})),
+        Reader.create(dataFactory.reader({})),
+        Reader.create(dataFactory.reader({}))
+        ])
+        .then(records => { 
+          readers = records 
+          done()
+       })
+    })
+
+    it('returns a list of readers', (done) => {
+      getReaders()
+      .then(res => {
+        expect(res.status).to.equal(200)
+        expect(res.body.readers).to.have.lengthOf(3)
+        done()
+      }).catch(error => done(error)) 
+    })
+  })
 })
